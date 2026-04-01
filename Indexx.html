@@ -1,0 +1,180 @@
+
+<style>
+.sb{font-family:var(--font-sans);padding:1rem 0}
+.sb-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sb-ti{font-size:12px;color:var(--color-text-secondary)}
+.sb-dots{display:flex;gap:4px}
+.sb-dot{width:18px;height:3px;border-radius:1px;background:var(--color-border-tertiary);cursor:pointer;transition:background .3s}
+.sb-dot.on{background:var(--color-text-primary)}
+.sb-frame{height:300px;border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);position:relative;overflow:hidden}
+.sb-sc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;opacity:0;transition:opacity .55s ease;pointer-events:none}
+.sb-sc.on{opacity:1;pointer-events:auto}
+.sb-tag{position:absolute;top:10px;left:12px;font-size:11px;color:rgba(255,255,255,.25);letter-spacing:1px}
+.sb-dur{position:absolute;top:10px;right:12px;font-size:11px;color:rgba(255,255,255,.25)}
+.bwrap{height:2px;background:var(--color-border-tertiary);border-radius:1px;margin-top:8px;overflow:hidden}
+.bbar{height:100%;background:var(--color-text-secondary);width:0%}
+.sb-info{margin-top:12px;padding:12px 14px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)}
+.lb{font-size:11px;color:var(--color-text-secondary);letter-spacing:1px;margin-bottom:4px}
+.vo{font-size:14px;color:var(--color-text-primary);line-height:1.6;margin-bottom:10px}
+.nt{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+.ctrls{display:flex;gap:8px;margin-top:10px}
+.btn{flex:1;padding:7px 10px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-primary);cursor:pointer;transition:background .15s}
+.btn:hover{background:var(--color-background-secondary)}
+.btn:disabled{opacity:.3;cursor:default}
+.pbtn{font-weight:500}
+</style>
+
+<div class="sb">
+  <div class="sb-top">
+    <span class="sb-ti">TaleSoul — Marketing Video Storyboard &nbsp;·&nbsp; 9 scenes &nbsp;·&nbsp; ~1 min</span>
+    <div class="sb-dots" id="dots"></div>
+  </div>
+  <div class="sb-frame" id="frame"></div>
+  <div class="bwrap"><div class="bbar" id="bar"></div></div>
+  <div class="sb-info" id="info"></div>
+  <div class="ctrls">
+    <button class="btn" id="pBtn" onclick="nav(-1)">← Prev</button>
+    <button class="btn pbtn" id="playBtn" onclick="togglePlay()">▶ Auto-play</button>
+    <button class="btn" id="nBtn" onclick="nav(1)">Next →</button>
+  </div>
+</div>
+
+<script>
+const S=[
+{bg:'#060810',dur:'0:00 – 0:04',sec:4,
+html:`<div style="color:rgba(255,255,255,.18);font-size:11px;letter-spacing:4px;margin-bottom:14px">EVERY</div>
+<div style="font-size:80px;font-weight:700;color:#fff;line-height:1;font-family:var(--font-serif)">40</div>
+<div style="font-size:18px;color:rgba(255,255,255,.45);margin-top:6px;font-family:var(--font-serif)">seconds</div>
+<div style="width:1px;height:34px;background:rgba(255,255,255,.12);margin:16px auto"></div>
+<div style="font-size:17px;color:rgba(255,255,255,.72);font-family:var(--font-serif);font-style:italic">a voice goes silent forever.</div>`,
+vo:'"Every 40 seconds... a voice goes silent. Forever."',
+note:'VISUAL: Pure black. The number 40 fades in slowly — like a heartbeat. Nothing else. SOUND: Single piano note, decaying echo. Hold still for 4 seconds.'},
+
+{bg:'#0d1117',dur:'0:04 – 0:10',sec:6,
+html:`<div style="font-size:11px;color:rgba(255,255,255,.22);letter-spacing:3px;margin-bottom:10px">INDIA · TODAY</div>
+<div style="font-size:68px;font-weight:700;color:#E24B4A;line-height:1;font-family:var(--font-serif)">620</div>
+<div style="font-size:15px;color:rgba(255,255,255,.5);margin-top:6px">lives lost every single day</div>
+<div style="margin-top:18px;font-size:14px;color:rgba(255,255,255,.32);line-height:1.9">Not to a disease.<br>Not to poverty.<br><span style="color:#E24B4A;font-weight:500">To silence.</span></div>`,
+vo:'"In India alone — 620 lives lost every single day. Not to a disease. Not to poverty. To silence."',
+note:'VISUAL: 620 hits hard on cut. Lines appear one by one. "To silence." last — in red. SOUND: Low pulse builds. Sharp cut to next scene.'},
+
+{bg:'#0a0d0c',dur:'0:10 – 0:16',sec:6,
+html:`<div style="font-size:11px;color:rgba(255,255,255,.18);letter-spacing:3px;margin-bottom:18px">THE REASON</div>
+<div style="font-size:19px;color:rgba(255,255,255,.82);font-family:var(--font-serif);font-style:italic;line-height:1.75;max-width:320px">"They didn't ask for help — because they feared just one word."</div>
+<div style="margin-top:22px;font-size:40px;font-weight:700;color:rgba(255,255,255,.08);letter-spacing:10px">WEAK</div>`,
+vo:'"They didn\'t ask for help — because they feared just one word. Weak."',
+note:'VISUAL: Italic quote fades in first. Then "WEAK" appears ghosted and huge — the weight of shame. SOUND: Ambient low drone. Heavy silence after.'},
+
+{bg:'#0d0b12',dur:'0:16 – 0:21',sec:5,
+html:`<div style="max-width:350px;font-family:var(--font-serif);font-style:italic;line-height:1.8;color:rgba(255,255,255,.9)">
+<div style="font-size:44px;color:rgba(255,255,255,.08);line-height:.5;text-align:left">"</div>
+<div style="font-size:19px">When you can't tell your story —</div>
+<div style="font-size:19px;color:#B5D4F4">your story starts to tell you.</div>
+<div style="font-size:44px;color:rgba(255,255,255,.08);text-align:right;line-height:.5">"</div>
+</div>`,
+vo:'"When you can\'t tell your story — your story starts to tell you."',
+note:'VISUAL: Just the quote. Soft blue on the second line. Full-screen poetry. No other elements. SOUND: Silence, then a very soft musical swell begins.'},
+
+{bg:'#0f0e0a',dur:'0:21 – 0:28',sec:7,
+html:`<div style="display:flex;gap:30px;align-items:center">
+<div style="text-align:center">
+<div style="font-size:52px;font-weight:700;color:#FAC775;font-family:var(--font-serif);line-height:1">85%</div>
+<div style="font-size:11px;color:rgba(255,255,255,.32);margin-top:5px;max-width:95px;line-height:1.6">never seek care</div>
+</div>
+<div style="width:1px;height:60px;background:rgba(255,255,255,.1)"></div>
+<div style="text-align:center">
+<div style="font-size:52px;font-weight:700;color:#FAC775;font-family:var(--font-serif);line-height:1">0.75</div>
+<div style="font-size:11px;color:rgba(255,255,255,.32);margin-top:5px;max-width:110px;line-height:1.6">psychiatrists per 1 lakh</div>
+</div>
+</div>
+<div style="margin-top:22px;font-size:11px;color:rgba(255,255,255,.2);letter-spacing:2px">THE SYSTEM WAS NEVER BUILT TO REACH THEM</div>`,
+vo:'"85% never seek care. And with only 0.75 psychiatrists per 1 lakh people — the system was never built to reach them."',
+note:'VISUAL: Two cold amber stats side by side. Numbers feel like a verdict. SOUND: Unsettling low electronic tone, brief silence after last line.'},
+
+{bg:'#080f0d',dur:'0:28 – 0:33',sec:5,
+html:`<div style="font-size:11px;color:rgba(255,255,255,.18);letter-spacing:3px;margin-bottom:18px">THE MISSING PIECE</div>
+<div style="font-size:21px;color:rgba(255,255,255,.78);font-family:var(--font-serif);line-height:1.85;max-width:300px">
+Not a clinic.<br>Not social media.<br>
+<span style="color:#1D9E75;font-weight:500">A sanctuary.</span>
+</div>`,
+vo:'"What they needed wasn\'t a clinic. It wasn\'t social media. It was a sanctuary — a space to finally speak without fear."',
+note:'VISUAL: Three lines appear one by one. First two in dim white. "A sanctuary." in teal — first warmth in the whole video. SOUND: Music lifts — hope enters.'},
+
+{bg:'#060d0b',dur:'0:33 – 0:40',sec:7,
+html:`<div style="font-size:11px;color:rgba(29,158,117,.4);letter-spacing:4px;margin-bottom:12px">INTRODUCING</div>
+<div style="font-size:54px;font-weight:700;color:#1D9E75;font-family:var(--font-serif);line-height:1">TaleSoul</div>
+<div style="width:36px;height:2px;background:#1D9E75;margin:14px auto"></div>
+<div style="font-size:13px;color:rgba(255,255,255,.4);letter-spacing:2px">THE DIGITAL THIRD SPACE</div>
+<div style="font-size:12px;color:rgba(255,255,255,.22);margin-top:5px">for emotional healing</div>`,
+vo:'"Introducing TaleSoul. The Digital Third Space — built for every person who ever felt too afraid to speak."',
+note:'VISUAL: Brand reveal. TaleSoul grows in clean and strong. Teal — calm authority. Linger. SOUND: Full musical swell. This is the emotional peak.'},
+
+{bg:'#060d0b',dur:'0:40 – 0:50',sec:10,
+html:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%;max-width:370px">
+${[['ANON','100% Anonymous','No judgment. No labels.'],['AI','Awareness Chatbot','You\'re not weak — just unheard.'],['MENTOR','Elite Mentors','Matched by culture & language.'],['IRL','Real Meetups','Human connection offline too.']].map(([tag,t,s])=>`
+<div style="border:0.5px solid rgba(29,158,117,.2);border-radius:8px;padding:11px 10px;background:rgba(29,158,117,.04);text-align:left">
+<div style="font-size:11px;font-weight:500;color:#1D9E75;letter-spacing:1px;margin-bottom:5px">${tag}</div>
+<div style="font-size:13px;color:rgba(255,255,255,.88);font-weight:500">${t}</div>
+<div style="font-size:11px;color:rgba(255,255,255,.28);margin-top:2px">${s}</div>
+</div>`).join('')}
+</div>`,
+vo:'"100% anonymous. AI-powered awareness. Elite mentors matched to your culture. Real human meetups — because healing happens offline too."',
+note:'VISUAL: Four feature cards appear in a 2×2 grid, fading in one by one. Teal accents. Calm warmth. SOUND: Music settles — soft, resolved.'},
+
+{bg:'#040a08',dur:'0:50 – 1:00',sec:10,
+html:`<div style="font-size:19px;color:rgba(255,255,255,.68);font-family:var(--font-serif);font-style:italic;line-height:1.75;max-width:300px;margin-bottom:22px">
+"Your story deserves<br>to be heard."
+</div>
+<div style="font-size:26px;font-weight:600;color:#1D9E75;letter-spacing:1px;margin-bottom:7px">talesoul.com</div>
+<div style="font-size:11px;color:rgba(255,255,255,.18);letter-spacing:3px">BEGIN YOUR JOURNEY</div>`,
+vo:'"Your story deserves to be heard. Visit talesoul.com — and take the first step."',
+note:'VISUAL: Quote fades in first, then URL in teal — clear and lasting. Linger for 5 full seconds on talesoul.com. SOUND: Single piano note returns. Full circle. Resolved.'}
+];
+
+let cur=0,playing=false,tmr=null;
+
+function build(){
+  document.getElementById('frame').innerHTML=S.map((s,i)=>`
+    <div class="sb-sc${i===0?' on':''}" id="sc${i}" style="background:${s.bg}">
+      <div class="sb-tag">SCENE ${String(i+1).padStart(2,'0')} / 09</div>
+      <div class="sb-dur">${s.dur}</div>
+      ${s.html}
+    </div>`).join('');
+}
+
+function redraw(){
+  document.querySelectorAll('.sb-sc').forEach((el,i)=>el.classList.toggle('on',i===cur));
+  document.getElementById('dots').innerHTML=S.map((_,i)=>`<div class="sb-dot${i===cur?' on':''}" onclick="goTo(${i})"></div>`).join('');
+  const s=S[cur];
+  document.getElementById('info').innerHTML=`<div class="lb">VOICEOVER</div><div class="vo">${s.vo}</div><div class="lb">DIRECTOR'S NOTE</div><div class="nt">${s.note}</div>`;
+  document.getElementById('pBtn').disabled=cur===0;
+  document.getElementById('nBtn').disabled=cur===S.length-1;
+}
+
+function goTo(i){cur=i;stopBar();redraw();if(playing)startBar();}
+function nav(d){const n=cur+d;if(n>=0&&n<S.length)goTo(n);}
+
+function stopBar(){
+  clearTimeout(tmr);
+  const b=document.getElementById('bar');
+  b.style.transition='none';b.style.width='0%';
+}
+
+function startBar(){
+  const b=document.getElementById('bar'),ms=S[cur].sec*1000;
+  b.style.transition='none';b.style.width='0%';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{b.style.transition=`width ${ms}ms linear`;b.style.width='100%';}));
+  tmr=setTimeout(()=>{
+    if(cur<S.length-1){cur++;redraw();startBar();}
+    else{playing=false;document.getElementById('playBtn').textContent='▶ Auto-play';stopBar();}
+  },ms);
+}
+
+function togglePlay(){
+  playing=!playing;
+  document.getElementById('playBtn').textContent=playing?'⏸ Pause':'▶ Auto-play';
+  playing?startBar():stopBar();
+}
+
+build();redraw();
+</script>
